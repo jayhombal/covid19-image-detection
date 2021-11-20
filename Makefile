@@ -17,9 +17,22 @@ else
 HAS_CONDA=True
 endif
 
+## Check OS
+OS_NAME := $(shell uname -s | tr A-Z a-z)
+MAC_OS := darwin
+UBUNTU := ubuntu
+os:
+	@echo $(OS_NAME)
+
 #################################################################################
 # COMMANDS                                                                      #
 #################################################################################
+
+ifeq ($(OS_NAME), $(MAC_OS))
+	@echo Your are Running on MACOS, setting up environment
+else 
+	@echo NO
+endif
 
 ## Install Python Dependencies
 requirements: test_environment
