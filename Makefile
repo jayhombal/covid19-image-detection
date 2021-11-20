@@ -8,7 +8,7 @@ PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
 PROJECT_NAME = covid19-image-detection
-PYTHON_INTERPRETER = python3
+PYTHON_INTERPRETER = python
 NIH_XRAYS_KAGGLE_URL = https://www.kaggle.com/nih-chest-xrays/data/download
 
 ifeq (,$(shell which conda))
@@ -40,29 +40,36 @@ requirements: test_environment
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
 #make Download dataset
-download: 
+download_nih: 
 	@echo ">>> Downloading NIH X-ray data from Kaggle..."
 	kaggle datasets download --force -d nih-chest-xrays/data
-	mv data.zip data/raw
+	mv data.zip data/external
 
-unzip: 
+get_nih_images: download_nih
 	@echo ">>> Unzipping NIH X-ray data."
-	unzip data/raw/data.zip -d data/raw
-
-	
-## Make Dataset
-data: requirements
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
-
+	mkdir data/raw/nih
+	unzip data/external/data.zip -d data/raw/nih
 
 ## Download covid images
-download-covidimgs:
+download_covid:
 	@echo ">>> Downloading Covid19 X-ray data from Kaggle..."
-	kaggle datasets download -d pranavraikokte/covid19-image-dataset
-	mkdir -p data/raw/covid19
-	mv covid19-image-dataset.zip data/raw/covid19/
+	kaggle datasets download --force -d pranavraikokte/covid19-image-dataset
+	mkdir -p data/external
+	mv covid19-image-dataset.zip data/external/
+get_covid19_images: download_covid
 	@echo ">>> Unzipping Covid-19 X-ray image data."
-	unzip data/raw/covid19/covid19-image-dataset.zip -d data/raw/covid19
+	rm -rf data/raw/Covid19-dataset
+	unzip data/external/covid19-image-dataset.zip -d data/raw/
+
+
+## Validate Dataset
+validate_nih_data: 
+	$(PYTHON_INTERPRETER) src/data/validate_dataset.py data/raw/Data_Entry_2017.csv data/interim/interim_data_entry_2017.csv
+
+prepare_nih_data: 
+	$(PYTHON_INTERPRETER) src/data/prepare_dataset.py data/interim/interim_data_entry_2017.csv data/processed/prepared_data_entry_2017.csv
+
+
 
 
 ## Delete all compiled Python files

@@ -55,3 +55,41 @@ Project Organization
 --------
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+
+
+STEPS to RUN THE PROJECT:
+
+Pre-requisites:
+
+1. Install make
+   Make is pre-installed in Ubuntu and MacOS, windows users refer https://community.chocolatey.org/packages/make 
+2. Kaggle API client setup 
+   https://github.com/Kaggle/kaggle-api
+
+3. Setup Python environment
+
+    Ubuntu:
+        Install conda and setup a python environment with tensorflow python3.9.7
+    Mac OS M1:
+        Follow instructurions
+            - https://towardsdatascience.com/installing-tensorflow-on-the-m1-mac-410bb36b776
+            - https://github.com/jeffheaton/t81_558_deep_learning/blob/master/install/tensorflow-install-mac-metal-jul-2021.ipynb
+
+4. create data folder with subdirectories raw,interim,processed,external the project folder
+
+How to Run the code:
+
+
+Data Extraction:(execute only once)
+Download and extract image data for the project
+
+    1. Download and unzip the NIH X-ray images in data/raw  
+        Run: make get_nih_images 
+
+    2. Download the Covid19 X-ray images in data/raw 
+        Run: make get_covid19_images
+
+Data Validation:
+Data validation means checking the accuracy and quality of source data before training a new model version. It ensures that anomalies that are infrequent or manifested in incremental data are not silently ignored.
+
+    3. 
