@@ -17,22 +17,9 @@ else
 HAS_CONDA=True
 endif
 
-## Check OS
-OS_NAME := $(shell uname -s | tr A-Z a-z)
-MAC_OS := darwin
-UBUNTU := ubuntu
-os:
-	@echo $(OS_NAME)
-
 #################################################################################
 # COMMANDS                                                                      #
 #################################################################################
-
-ifeq ($(OS_NAME), $(MAC_OS))
-	@echo Your are Running on MACOS, setting up environment
-else 
-	@echo NO
-endif
 
 ## Install Python Dependencies
 requirements: test_environment
@@ -63,10 +50,10 @@ get_covid19_images: download_covid
 
 
 ## Validate Dataset
-validate_nih_data: 
+validate_nih_images: 
 	$(PYTHON_INTERPRETER) src/data/validate_dataset.py data/raw/Data_Entry_2017.csv data/interim/interim_data_entry_2017.csv
 
-prepare_nih_data: 
+prepare_nih_images: 
 	$(PYTHON_INTERPRETER) src/data/prepare_dataset.py data/interim/interim_data_entry_2017.csv data/processed/prepared_data_entry_2017.csv
 
 

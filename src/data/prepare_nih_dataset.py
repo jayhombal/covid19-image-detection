@@ -21,6 +21,13 @@ class PrepareNIHData:
         self.logger.info('making final data set from raw data')  
         self.MIN_CASES_FLAG = True
         self.MIN_CLASSES = 500
+                
+        self.nih_required_columns = nih_column_names =  {
+            'image_name',
+            'finding_label',
+            'patient_id',
+            'path'
+        }
 
     def read_data(self, raw_data_path):
         """Read raw data into DataProcessor."""
@@ -57,18 +64,19 @@ class PrepareNIHData:
         self.logger.info('All Labels ({}): {}'.format(len(all_labels), all_labels))
         
         for label in all_labels:
-            self.nih_xrays_df[label]= self.nih_xrays_df['finding_label'].map(lambda finding: 1 if label in finding else 0)
+             self.nih_xrays_df[label]= self.nih_xrays_df['finding_label'].map(lambda finding: 1 if label in finding else 0)
             
-         # Apply the min_cases logic
+        # Apply the min_cases logic
 
         if self.MIN_CASES_FLAG:
             all_labels_with_min_cases = [label for label in all_labels \
                                      if self.nih_xrays_df[label].sum() > self.MIN_CLASSES]
             self.logger.info(f'finding labels with min cases: {len(all_labels_with_min_cases)}')  
             self.logger.info([(label, int(self.nih_xrays_df[label].sum())) for label in all_labels_with_min_cases])
-            
+            self.nih_xrays_df= self.nih_xrays_df[self.nih_xrays_df['finding_label'].isin(all_labels_with_min_cases)]
 
         
+        self.nih_xrays_df = self.nih_xrays_df[self.nih_required_columns]
         group_shuffle_split = GroupShuffleSplit(n_splits=1, train_size=0.8, random_state=42)
 
         for train_idx, valid_idx in group_shuffle_split.split(self.nih_xrays_df[:None],\

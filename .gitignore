@@ -21,7 +21,10 @@ sdist/
 var/
 
 #updated by Jay
-data/
+/data/raw
+/data/processed
+/data/external
+/data/interim
 models/
 
 
