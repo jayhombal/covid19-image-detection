@@ -92,4 +92,4 @@ Download and extract image data for the project
 Data Validation:
 Data validation means checking the accuracy and quality of source data before training a new model version. It ensures that anomalies that are infrequent or manifested in incremental data are not silently ignored.
 
-    3. 
+    3. make 
