@@ -7,8 +7,9 @@
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
-PROJECT_NAME = covid19-image-detection-tfl
+PROJECT_NAME = covid19-image-detection
 PYTHON_INTERPRETER = python3
+NIH_XRAYS_KAGGLE_URL = https://www.kaggle.com/nih-chest-xrays/data/download
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -25,9 +26,31 @@ requirements: test_environment
 	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
+#make Download dataset
+download: 
+	@echo ">>> Downloading NIH X-ray data from Kaggle..."
+	kaggle datasets download --force -d nih-chest-xrays/data
+	mv data.zip data/raw
+
+unzip: 
+	@echo ">>> Unzipping NIH X-ray data."
+	unzip data/raw/data.zip -d data/raw
+
+	
 ## Make Dataset
 data: requirements
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
+
+
+## Download covid images
+download-covidimgs:
+	@echo ">>> Downloading Covid19 X-ray data from Kaggle..."
+	kaggle datasets download -d pranavraikokte/covid19-image-dataset
+	mkdir -p data/raw/covid19
+	mv covid19-image-dataset.zip data/raw/covid19/
+	@echo ">>> Unzipping Covid-19 X-ray image data."
+	unzip data/raw/covid19/covid19-image-dataset.zip -d data/raw/covid19
+
 
 ## Delete all compiled Python files
 clean:
