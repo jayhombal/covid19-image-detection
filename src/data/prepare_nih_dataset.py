@@ -40,9 +40,9 @@ class PrepareNIHData:
         """
         #add image path column to the dataset 
         # create a set of all image paths
-        image_path = 'data/raw'
+        image_path = 'data/raw/nih'
+       
         all_image_paths = {os.path.basename(x): x for x in glob( os.path.join(image_path, 'images*', '*', '*.png'))}
-
         self.nih_xrays_df['path'] = self.nih_xrays_df['image_name'].map(all_image_paths.get)
         
         print('count of raw images paths and rows in NIH dataset :', \

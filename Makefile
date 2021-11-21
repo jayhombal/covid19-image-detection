@@ -51,7 +51,7 @@ get_covid19_images: download_covid
 
 ## Validate Dataset
 validate_nih_images: 
-	$(PYTHON_INTERPRETER) src/data/validate_dataset.py data/raw/Data_Entry_2017.csv data/interim/interim_data_entry_2017.csv
+	$(PYTHON_INTERPRETER) src/data/validate_dataset.py data/raw/nih/Data_Entry_2017.csv data/interim/interim_data_entry_2017.csv
 
 prepare_nih_images: 
 	$(PYTHON_INTERPRETER) src/data/prepare_dataset.py data/interim/interim_data_entry_2017.csv data/processed/prepared_data_entry_2017.csv
