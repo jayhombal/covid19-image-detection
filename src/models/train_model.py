@@ -42,7 +42,7 @@ callbacks = [checkpoint, early, reduce_lr]
 
 
 
-def get_base_model(model_name :str = 'resenet50v2', freeze_layers:bool = False, image_shape : tuple = (224,224)):
+def get_base_model(model_name :str = 'ResNet50V2', freeze_layers:bool = False, image_shape : tuple = (224,224,3)):
     """ returns pretrained model
 
     Args:
@@ -145,17 +145,18 @@ def get_base_model_with_new_toplayer(base_model,
                                      freeze_layers: bool = False, 
                                      num_classes: int = 15,
                                      activation: str = 'softmax',  # softmax or sigmoid
-                                     learning_rate: float = 0.01):
+                                     learning_rate: float = 0.01,
+                                     input_shape : tuple = (224,224,3)):
     """ add a classifier
 
     Args:
         base_model ([keras.Model]): base_model
         num_classes ([int]) : number classes
     """
-    base_model = get_base_model(base_model,freeze_layers)
+    base_model = get_base_model(base_model,freeze_layers,input_shape)
     head_model = base_model.output
     head_model = keras.layers.Flatten(name="flatten")(head_model)
-    head_model = keras.layers.Dense(num_classes,activation='sigmoid')(head_model)
+    head_model = keras.layers.Dense(num_classes,activation=activation)(head_model)
     model = keras.Model(inputs=base_model.input, outputs=head_model)
     model = compile_classifier(model, learning_rate, activation)
     return model
