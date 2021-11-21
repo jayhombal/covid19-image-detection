@@ -129,7 +129,6 @@ def get_base_model_with_new_toplayer(base_model,
     return model
 
 
-
 def fine_tune_model(model, learning_rate =0.00001, optimizer = 'Adam',  fine_tune_at_layer:int=178):
     # Freeze all the layers before the `fine_tune_at` layer
     for layer in model.layers[fine_tune_at_layer:]:
