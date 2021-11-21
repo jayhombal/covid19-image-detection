@@ -74,12 +74,13 @@ class PrepareNIHData:
             
         # Apply the min_cases logic
 
-        if self.MIN_CASES_FLAG:
-            all_labels_with_min_cases = [label for label in all_labels \
-                                     if self.nih_xrays_df[label].sum() > self.MIN_CLASSES]
-            self.logger.info(f'finding labels with min cases: {len(all_labels_with_min_cases)}')  
-            self.logger.info([(label, int(self.nih_xrays_df[label].sum())) for label in all_labels_with_min_cases])
-            self.nih_xrays_df= self.nih_xrays_df[self.nih_xrays_df['finding_label'].isin(all_labels_with_min_cases)]
+        # if self.MIN_CASES_FLAG:
+        #     self.logger.info("Applying the min_cases (samples) requirements")
+        #     all_labels_with_min_cases = [label for label in all_labels \
+        #                              if self.nih_xrays_df[label].sum() > self.MIN_CLASSES]
+        #     self.logger.info(f'finding labels with min cases: {len(all_labels_with_min_cases)}')  
+        #     self.logger.info([(label, int(self.nih_xrays_df[label].sum())) for label in all_labels_with_min_cases])
+        #     self.nih_xrays_df= self.nih_xrays_df[self.nih_xrays_df['finding_label'].isin(all_labels_with_min_cases)]
 
         
         self.nih_xrays_df = self.nih_xrays_df[self.nih_required_columns]

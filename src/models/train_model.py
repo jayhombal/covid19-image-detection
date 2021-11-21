@@ -120,6 +120,7 @@ def get_base_model_with_new_toplayer(base_model,
         base_model ([keras.Model]): base_model
         num_classes ([int]) : number classes
     """
+    print(f"learning rate {learning_rate}")
     base_model = get_base_model(base_model,freeze_layers,input_shape)
     head_model = base_model.output
     head_model = keras.layers.Flatten(name="flatten")(head_model)
@@ -129,11 +130,11 @@ def get_base_model_with_new_toplayer(base_model,
     return model
 
 
-def fine_tune_model(model, learning_rate =0.00001, optimizer = 'Adam',  fine_tune_at_layer:int=178):
+def fine_tune_model(model, learning_rate =0.00001, optimizer = 'Adam',  fine_tune_at_layer:int=178, activation_func: str = 'softmax'):
     # Freeze all the layers before the `fine_tune_at` layer
     for layer in model.layers[fine_tune_at_layer:]:
         layer.trainable =  True
-    compile_classifier(model, learning_rate = learning_rate, optimizer=optimizer)
+    compile_classifier(model, learning_rate = learning_rate, optimizer=optimizer, activation_type = activation_func)
     return model
 
 
