@@ -28,9 +28,9 @@ assert tf.__version__ >= "2.0"
 #callback setup
 from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler, EarlyStopping, ReduceLROnPlateau
 
-checkpoint_path = '../models/xray_class_weights.best.hdf5'
-checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, 
-                             save_best_only=True, mode='min', save_weights_only = True)
+#checkpoint_path = 'models/xray_class_weights.best.hdf5'
+#checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, 
+#                             save_best_only=True, mode='min', save_weights_only = True)
 
 early = EarlyStopping(monitor="val_loss", min_delta = 1e-4, patience = 5, mode = 'min', 
                     restore_best_weights = True, verbose = 1)
@@ -38,13 +38,16 @@ early = EarlyStopping(monitor="val_loss", min_delta = 1e-4, patience = 5, mode =
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience = 2, verbose = 1, 
                                 min_delta = 1e-4, min_lr = 1e-6, mode = 'min', cooldown=1)
 
-callbacks = [checkpoint, early, reduce_lr]
+callbacks = [early, reduce_lr]
+
+#callbacks = [checkpoint, early, reduce_lr]
+
 
 
 
 def get_base_model(model_name :str = 'ResNet50V2', freeze_layers:bool = False, image_shape : tuple = (224,224,3)):
-    """ returns pretrained model
-
+    """
+    Returns the base model with all frozen layers after removing the top layer, 
     Args:
         model_name (str): model_name values pretrained_models = ['ResNet50V2', 'MobileNetV2', 'VGG16']
     """
@@ -70,10 +73,10 @@ def get_base_model(model_name :str = 'ResNet50V2', freeze_layers:bool = False, i
     
     return base_model
 
-
-def compile_binary_classifier(model, learning_rate, optimizer = 'Adam'):
+ 
+def compile_classifier(model, learning_rate, optimizer = 'Adam' , activation_type:str = 'softmax'):
     """[summary]
-
+    Returns a compiled model, this method can be extended to use other optimizers
     Args:
         model ([tensorflow.keras.Model]): classifier model
         learning_rate ([float]): [description]
@@ -88,63 +91,27 @@ def compile_binary_classifier(model, learning_rate, optimizer = 'Adam'):
             amsgrad=True,
             name="Adam"
             )
-
-    
-    model.compile(optimizer = optimizer,
-                  #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                  #loss =tf.keras.losses.CategoricalCrossentropy(),
-                  #loss=get_weighted_loss(pos_weights, neg_weights),
-                  #metrics=['accuracy']
-                  loss = tf.keras.losses.binary_crossentropy,
-                  #metrics =['binary_accuracy', 'mae', 'auc']
-                  metrics = [keras.metrics.MAE, 
-                             keras.metrics.AUC(name='auc',multi_label=True),
-                             keras.metrics.BinaryAccuracy(threshold=0.65),
-                             keras.metrics.FalseNegatives(),
-                             keras.metrics.FalsePositives(), 
-                             ]
-                  )
-    
-    return model
-
-def compile_classifier(model, learning_rate, optimizer = 'Adam' , activation:str = 'softmax'):
-    """[summary]
-
-    Args:
-        model ([tensorflow.keras.Model]): classifier model
-        learning_rate ([float]): [description]
-        optimizer ([tensorflow.keras.optimizers]): optimizer
-    """
-    if optimizer == 'Adam':
-        optimizer=tf.keras.optimizers.Adam(
-            learning_rate=learning_rate,
-            beta_1=0.9,
-            beta_2=0.999,
-            epsilon=1e-07,
-            amsgrad=True,
-            name="Adam"
-            )
-    if activation == 'softmax':
-        model.compile(optimizer = optimizer,
-            loss =tf.keras.losses.CategoricalCrossentropy(),
-            metrics=['accuracy'])
-    elif activation == 'sigmoid':
-        model.compile(optimizer = optimizer,
-            loss = tf.keras.losses.binary_crossentropy,
-            metrics = [keras.metrics.MAE, 
-                             keras.metrics.AUC(name='auc',multi_label=True),
-                             keras.metrics.BinaryAccuracy(threshold=0.65),
-                             keras.metrics.FalseNegatives(),
-                             keras.metrics.FalsePositives(), 
-                             ]
-                  )
+    # if activation_type == 'softmax':
+    #     loss = tf.keras.losses.CategoricalCrossentropy()
+    #     metrics = ['accuracy']
+    # elif activation_type == 'sigmoid':
+    #     loss = tf.keras.losses.binary_crossentropy,
+    #     metrics = [keras.metrics.MAE, 
+    #         keras.metrics.AUC(name='auc',multi_label=True),
+    #         keras.metrics.BinaryAccuracy(threshold=0.65),
+    #         keras.metrics.FalseNegatives(),
+    #         keras.metrics.FalsePositives()]
+    #compile model
+    loss = tf.keras.losses.CategoricalCrossentropy()
+    metrics = ['accuracy']
+    model.compile(optimizer=optimizer, loss = loss, metrics = metrics)
     
     return model
 
 def get_base_model_with_new_toplayer(base_model, 
                                      freeze_layers: bool = False, 
                                      num_classes: int = 15,
-                                     activation: str = 'softmax',  # softmax or sigmoid
+                                     activation_func: str = 'softmax',  # softmax or sigmoid
                                      learning_rate: float = 0.01,
                                      input_shape : tuple = (224,224,3)):
     """ add a classifier
@@ -156,9 +123,9 @@ def get_base_model_with_new_toplayer(base_model,
     base_model = get_base_model(base_model,freeze_layers,input_shape)
     head_model = base_model.output
     head_model = keras.layers.Flatten(name="flatten")(head_model)
-    head_model = keras.layers.Dense(num_classes,activation=activation)(head_model)
+    head_model = keras.layers.Dense(num_classes,activation=activation_func)(head_model)
     model = keras.Model(inputs=base_model.input, outputs=head_model)
-    model = compile_classifier(model, learning_rate, activation)
+    model = compile_classifier(model, learning_rate, optimizer='Adam', activation_type=activation_func)
     return model
 
 
@@ -204,4 +171,29 @@ def plot_epocs_vs_auc(history):
     plt.legend()
     plt.show()
 
+def plot_accuracy_and_loss(history):
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    plt.figure(figsize=(8, 8))
+    plt.subplot(2, 1, 1)
+    plt.plot(acc, label='Training Accuracy')
+    plt.plot(val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.ylabel('Accuracy')
+    plt.ylim([min(plt.ylim()),1])
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(loss, label='Training Loss')
+    plt.plot(val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.ylabel('Cross Entropy')
+    plt.ylim([0,max(plt.ylim())])
+    plt.title('Training and Validation Loss')
+    plt.xlabel('epoch')
+    plt.show()
 

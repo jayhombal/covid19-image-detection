@@ -16,17 +16,17 @@ class PrepareNIHData:
     """
 
 
-    def __init__(self):
+    def __init__(self, MIN_CASES_FLAG: bool = False):
         self.logger = logging.getLogger("PrepareNIHData")
         self.logger.info('making final data set from raw data')  
         self.MIN_CASES_FLAG = True
         self.MIN_CLASSES = 500
                 
-        self.nih_required_columns = nih_column_names =  {
-            'image_name',
-            'finding_label',
+        self.nih_required_columns = {
             'patient_id',
-            'path'
+            'image_name',
+            'path',
+            'finding_label'
         }
 
     def read_data(self, raw_data_path):
@@ -41,9 +41,15 @@ class PrepareNIHData:
         #add image path column to the dataset 
         # create a set of all image paths
         image_path = 'data/raw/nih'
+        print(os.getcwd())
        
         all_image_paths = {os.path.basename(x): x for x in glob( os.path.join(image_path, 'images*', '*', '*.png'))}
+
+        #df = pd.DataFrame(list(all_image_paths.items()),columns = ['image_name','path'])
+        #self.nih_xrays_df = pd.merge(self.nih_xrays_df, df, how='left', on='image_name')
+        
         self.nih_xrays_df['path'] = self.nih_xrays_df['image_name'].map(all_image_paths.get)
+        
         
         print('count of raw images paths and rows in NIH dataset :', \
             str(len(all_image_paths)), ', Total Headers', \

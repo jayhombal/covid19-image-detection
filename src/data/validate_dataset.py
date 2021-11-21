@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 from validate_nih_dataset import ValidateNIHData
-from prepare_nih_dataset import PrepareNIHData
+
 
 
 @click.command()

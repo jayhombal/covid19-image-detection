@@ -16,7 +16,7 @@ def main(input_filepath, output_filepath):
     """
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
-    prepare_nih = PrepareNIHData()
+    prepare_nih = PrepareNIHData(MIN_CASES_FLAG=False)
     
     logger.info('PrepareNIH - reading validatedd dataset')
     prepare_nih.read_data(input_filepath)
