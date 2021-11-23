@@ -51,7 +51,7 @@ download_covid:
 	unzip data/external/covid19-customized-xray-dataset.zip -d data/raw/
 	
 
-get_covid19_images: 
+get_covid19_images: download_covid
 	mv -f data/raw/COVID19\ CUSTOMIZED\ X-RAY\ DATASET/  data/raw/covid19-images
 	mv data/raw/Covid19-dataset/train/Covid/*.* data/raw/covid19-images/COVID19/
 	mv data/raw/Covid19-dataset/train/Normal/*.* data/raw/covid19-images/NORMAL/
