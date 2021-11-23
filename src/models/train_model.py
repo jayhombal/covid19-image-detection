@@ -32,13 +32,14 @@ from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler, E
 #checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, 
 #                             save_best_only=True, mode='min', save_weights_only = True)
 
-early = EarlyStopping(monitor="val_loss", min_delta = 1e-4, patience = 5, mode = 'min', 
-                    restore_best_weights = True, verbose = 1)
+#early = EarlyStopping(monitor="val_loss", min_delta = 1e-4, patience = 5, mode = 'min', 
+##                    restore_best_weights = True, verbose = 1)
 
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience = 2, verbose = 1, 
-                                min_delta = 1e-4, min_lr = 1e-6, mode = 'min', cooldown=1)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience = 2 ) #, verbose = 1, 
+                                #min_delta = 1e-4, min_lr = 1e-6, mode = 'min', cooldown=1)
 
-callbacks = [early, reduce_lr]
+#callbacks = [early, reduce_lr]
+callbacks = [reduce_lr]
 
 #callbacks = [checkpoint, early, reduce_lr]
 
@@ -91,19 +92,18 @@ def compile_classifier(model, learning_rate, optimizer = 'Adam' , activation_typ
             amsgrad=True,
             name="Adam"
             )
-    # if activation_type == 'softmax':
-    #     loss = tf.keras.losses.CategoricalCrossentropy()
-    #     metrics = ['accuracy']
-    # elif activation_type == 'sigmoid':
-    #     loss = tf.keras.losses.binary_crossentropy,
-    #     metrics = [keras.metrics.MAE, 
-    #         keras.metrics.AUC(name='auc',multi_label=True),
-    #         keras.metrics.BinaryAccuracy(threshold=0.65),
-    #         keras.metrics.FalseNegatives(),
-    #         keras.metrics.FalsePositives()]
+    if activation_type == 'softmax':
+        loss = tf.keras.losses.CategoricalCrossentropy()
+        metrics = ['accuracy']
+    elif activation_type == 'sigmoid':
+        loss = tf.keras.losses.binary_crossentropy,
+        metrics = [keras.metrics.MAE, 
+            keras.metrics.AUC(name='auc',multi_label=True),
+            keras.metrics.BinaryAccuracy(threshold=0.65),
+            keras.metrics.FalseNegatives(),
+            keras.metrics.FalsePositives()]
     #compile model
-    loss = tf.keras.losses.CategoricalCrossentropy()
-    metrics = ['accuracy']
+
     model.compile(optimizer=optimizer, loss = loss, metrics = metrics)
     
     return model
@@ -124,6 +124,23 @@ def get_base_model_with_new_toplayer(base_model,
     base_model = get_base_model(base_model,freeze_layers,input_shape)
     head_model = base_model.output
     head_model = keras.layers.Flatten(name="flatten")(head_model)
+    # head_model = keras.layers.Dense(256, activation="relu")(head_model)
+    # head_model = keras.layers.Dropout(0.3)(head_model)
+    # head_model = keras.layers.Dense(128, activation="relu")(head_model)
+    # head_model = keras.layers.Dropout(0.3)(head_model)
+    # head_model = keras.layers.Dense(64, activation="relu")(head_model)
+    head_model = keras.layers.Dense(64, activation='relu')(head_model)   #Added Starts Here
+    head_model = keras.layers.BatchNormalization()(head_model)
+    head_model = keras.layers.Dropout(rate=0.5)(head_model)
+    head_model = keras.layers.Dense(64, activation='relu')(head_model)
+    head_model = keras.layers.BatchNormalization()(head_model)
+    head_model = keras.layers.Dropout(rate=0.5)(head_model)
+    head_model = keras.layers.Dense(32, activation='relu')(head_model)
+    head_model = keras.layers.BatchNormalization()(head_model)
+    head_model = keras.layers.Dropout(rate=0.5)(head_model)
+    head_model = keras.layers.Dense(32, activation='relu')(head_model)
+    head_model = keras.layers.BatchNormalization()(head_model)
+    head_model = keras.layers.Dropout(rate=0.5)(head_model)                    #Added Ends Here
     head_model = keras.layers.Dense(num_classes,activation=activation_func)(head_model)
     model = keras.Model(inputs=base_model.input, outputs=head_model)
     model = compile_classifier(model, learning_rate, optimizer='Adam', activation_type=activation_func)
@@ -178,22 +195,63 @@ def plot_accuracy_and_loss(history):
     loss = history.history['loss']
     val_loss = history.history['val_loss']
 
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(10, 12))
     plt.subplot(2, 1, 1)
     plt.plot(acc, label='Training Accuracy')
     plt.plot(val_acc, label='Validation Accuracy')
     plt.legend(loc='lower right')
     plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
     plt.ylim([min(plt.ylim()),1])
-    plt.title('Training and Validation Accuracy')
+    plt.title('Training & Validation - Accuracy')
 
     plt.subplot(2, 1, 2)
     plt.plot(loss, label='Training Loss')
     plt.plot(val_loss, label='Validation Loss')
     plt.legend(loc='upper right')
-    plt.ylabel('Cross Entropy')
+    plt.ylabel('Loss')
     plt.ylim([0,max(plt.ylim())])
-    plt.title('Training and Validation Loss')
-    plt.xlabel('epoch')
+    plt.title('Training & Validation - Loss')
+    plt.xlabel('Epoch')
     plt.show()
+
+
+from keras.applications.resnet_v2 import preprocess_input
+from keras.preprocessing.image import ImageDataGenerator
+
+
+def get_image_data_generator(train_df, lables, batch_size: int = 32, shuffle: bool = True, seed: int = 42, image_size : tuple = (224,224)):
+    image_data_gen = ImageDataGenerator(
+    preprocessing_function= preprocess_input,
+    featurewise_center=False,  # set input mean to 0 over the dataset
+    samplewise_center=True, #Boolean. Set each sample mean to 0.
+    samplewise_std_normalization = False, #Boolean. Divide each input by its std.
+    featurewise_std_normalization=False, # divide inputs by std of the dataset
+    horizontal_flip = True, #Boolean. Randomly flip inputs horizontally.
+    vertical_flip = False,  #Boolean. Randomly flip inputs vertically.
+    zca_whitening=False,  # apply ZCA whitening
+    height_shift_range= 0.05, #float: fraction of total height, if < 1, or pixels if >= 1.
+    width_shift_range=0.1,  #float: fraction of total height, if < 1, or pixels if >= 1.
+    rotation_range=20, #Int. Degree range for random rotations. 0 -180 degrees
+    shear_range = 0.1, #Float. Shear Intensity (Shear angle in counter-clockwise direction in degrees)
+    fill_mode = 'nearest', #One of {"constant", "nearest", "reflect" or "wrap"}. Default is 'nearest'. 
+    zoom_range=0.15) #Float or [lower, upper]. Range for random zoom. If a float, [lower, upper] = [1-zoom_range, 1+zoom_range]
+
+    #Takes the dataframe and the path to a directory + generates batches.
+    img_generator = image_data_gen.flow_from_dataframe(
+                dataframe=train_df,
+                directory=None, #string, path to the directory to read images from. 
+                                #If None, data in x_col column should be absolute paths.
+                x_col='path', #string, column in dataframe that contains the filenames (or absolute paths if directory is None).
+                y_col='finding_label', #string or list, column/s in dataframe that has the target data.
+        
+                class_mode="categorical", #one of "binary", "categorical", "input", "multi_output", "raw", sparse" or None. Default: "categorical". 
+                                # Mode for yielding the targets: "raw": numpy array of values in y_col column(s),
+                classes=lables,
+                #color_mode='grayscale',
+                batch_size=batch_size,
+                shuffle=shuffle,
+                seed=seed,
+                target_size= image_size)
+    return img_generator
 

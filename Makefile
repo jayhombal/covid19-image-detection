@@ -41,12 +41,25 @@ get_nih_images: download_nih
 download_covid:
 	@echo ">>> Downloading Covid19 X-ray data from Kaggle..."
 	kaggle datasets download --force -d pranavraikokte/covid19-image-dataset
+	kaggle datasets download -d mushaxyz/covid19-customized-xray-dataset
 	mkdir -p data/external
 	mv covid19-image-dataset.zip data/external/
-get_covid19_images: download_covid
+	mv covid19-customized-xray-dataset.zip data/external
 	@echo ">>> Unzipping Covid-19 X-ray image data."
 	rm -rf data/raw/Covid19-dataset
 	unzip data/external/covid19-image-dataset.zip -d data/raw/
+	unzip data/external/covid19-customized-xray-dataset.zip -d data/raw/
+	
+
+get_covid19_images: 
+	mv -f data/raw/COVID19\ CUSTOMIZED\ X-RAY\ DATASET/  data/raw/covid19-images
+	mv data/raw/Covid19-dataset/train/Covid/*.* data/raw/covid19-images/COVID19/
+	mv data/raw/Covid19-dataset/train/Normal/*.* data/raw/covid19-images/NORMAL/
+	mv data/raw/Covid19-dataset/train/Viral\ Pneumonia/*.* data/raw/covid19-images/PNEUMONIA/
+	mv data/raw/Covid19-dataset/test/Covid/*.* data/raw/covid19-images/COVID19/
+	mv data/raw/Covid19-dataset/test/Normal/*.* data/raw/covid19-images/NORMAL/
+	mv data/raw/Covid19-dataset/test/Viral\ Pneumonia/*.* data/raw/covid19-images/PNEUMONIA/
+	rm -rf data/raw/Covid19-dataset
 
 
 ## Validate Dataset
