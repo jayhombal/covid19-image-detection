@@ -28,20 +28,7 @@ assert tf.__version__ >= "2.0"
 #callback setup
 from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler, EarlyStopping, ReduceLROnPlateau
 
-#checkpoint_path = 'models/xray_class_weights.best.hdf5'
-#checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, 
-#                             save_best_only=True, mode='min', save_weights_only = True)
 
-#early = EarlyStopping(monitor="val_loss", min_delta = 1e-4, patience = 5, mode = 'min', 
-##                    restore_best_weights = True, verbose = 1)
-
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience = 2 ) #, verbose = 1, 
-                                #min_delta = 1e-4, min_lr = 1e-6, mode = 'min', cooldown=1)
-
-#callbacks = [early, reduce_lr]
-callbacks = [reduce_lr]
-
-#callbacks = [checkpoint, early, reduce_lr]
 
 
 
@@ -114,8 +101,8 @@ def get_base_model_with_new_toplayer(base_model,
                                      activation_func: str = 'softmax',  # softmax or sigmoid
                                      learning_rate: float = 0.01,
                                      input_shape : tuple = (224,224,3)):
-    """ add a classifier
-
+    """ 
+    Returns a model with a baseline architecture of ResNet50V2, VGG16, MobileNetV2 models
     Args:
         base_model ([keras.Model]): base_model
         num_classes ([int]) : number classes
@@ -129,18 +116,18 @@ def get_base_model_with_new_toplayer(base_model,
     # head_model = keras.layers.Dense(128, activation="relu")(head_model)
     # head_model = keras.layers.Dropout(0.3)(head_model)
     # head_model = keras.layers.Dense(64, activation="relu")(head_model)
-    head_model = keras.layers.Dense(64, activation='relu')(head_model)   #Added Starts Here
-    head_model = keras.layers.BatchNormalization()(head_model)
-    head_model = keras.layers.Dropout(rate=0.5)(head_model)
-    head_model = keras.layers.Dense(64, activation='relu')(head_model)
-    head_model = keras.layers.BatchNormalization()(head_model)
-    head_model = keras.layers.Dropout(rate=0.5)(head_model)
-    head_model = keras.layers.Dense(32, activation='relu')(head_model)
-    head_model = keras.layers.BatchNormalization()(head_model)
-    head_model = keras.layers.Dropout(rate=0.5)(head_model)
-    head_model = keras.layers.Dense(32, activation='relu')(head_model)
-    head_model = keras.layers.BatchNormalization()(head_model)
-    head_model = keras.layers.Dropout(rate=0.5)(head_model)                    #Added Ends Here
+    # head_model = keras.layers.Dense(64, activation='relu')(head_model)   #Added Starts Here
+    # head_model = keras.layers.BatchNormalization()(head_model)
+    # head_model = keras.layers.Dropout(rate=0.5)(head_model)
+    # head_model = keras.layers.Dense(64, activation='relu')(head_model)
+    # head_model = keras.layers.BatchNormalization()(head_model)
+    # head_model = keras.layers.Dropout(rate=0.5)(head_model)
+    # head_model = keras.layers.Dense(32, activation='relu')(head_model)
+    # head_model = keras.layers.BatchNormalization()(head_model)
+    # head_model = keras.layers.Dropout(rate=0.5)(head_model)
+    # head_model = keras.layers.Dense(32, activation='relu')(head_model)
+    # head_model = keras.layers.BatchNormalization()(head_model)
+    # head_model = keras.layers.Dropout(rate=0.5)(head_model)                    #Added Ends Here
     head_model = keras.layers.Dense(num_classes,activation=activation_func)(head_model)
     model = keras.Model(inputs=base_model.input, outputs=head_model)
     model = compile_classifier(model, learning_rate, optimizer='Adam', activation_type=activation_func)
@@ -157,9 +144,32 @@ def fine_tune_model(model, learning_rate =0.00001, optimizer = 'Adam',  fine_tun
 
 
 
-def fit_model(model,train_ds,
-    validation_ds, 
-    num_epochs: int = 20, batch_size: int = 32):
+def fit_model(model,
+              train_ds,
+              validation_ds, 
+              num_epochs: int = 20, 
+              batch_size: int = 32, 
+              checkpoint_filepath:str = 'models/my_model.h5', 
+              logs_dir: str = 'logs/fit'):
+    
+    
+    checkpoint = ModelCheckpoint(checkpoint_filepath, 
+                                 monitor='val_loss', 
+                                 verbose=1, 
+                                 save_best_only=True, 
+                                 mode='min')
+
+    early = EarlyStopping(monitor="val_loss", min_delta = 1e-4, patience = 3, mode = 'min', 
+                    restore_best_weights = True, verbose = 1)
+
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience = 2 ) #, verbose = 1, 
+                                #min_delta = 1e-4, min_lr = 1e-6, mode = 'min', cooldown=1)
+
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=1)
+
+
+    callbacks = [checkpoint, early, reduce_lr, tensorboard_callback]
+
     history = model.fit(train_ds,
                     epochs=num_epochs,
                     validation_data=validation_ds,

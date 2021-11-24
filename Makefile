@@ -51,15 +51,19 @@ download_covid:
 	unzip data/external/covid19-customized-xray-dataset.zip -d data/raw/
 	
 
-get_covid19_images: download_covid
+get_covid19_images: 
+	unzip data/external/covid19-customized-xray-dataset.zip -d data/raw/
 	mv -f data/raw/COVID19\ CUSTOMIZED\ X-RAY\ DATASET/  data/raw/covid19-images
-	mv data/raw/Covid19-dataset/train/Covid/*.* data/raw/covid19-images/COVID19/
-	mv data/raw/Covid19-dataset/train/Normal/*.* data/raw/covid19-images/NORMAL/
-	mv data/raw/Covid19-dataset/train/Viral\ Pneumonia/*.* data/raw/covid19-images/PNEUMONIA/
-	mv data/raw/Covid19-dataset/test/Covid/*.* data/raw/covid19-images/COVID19/
-	mv data/raw/Covid19-dataset/test/Normal/*.* data/raw/covid19-images/NORMAL/
-	mv data/raw/Covid19-dataset/test/Viral\ Pneumonia/*.* data/raw/covid19-images/PNEUMONIA/
-	rm -rf data/raw/Covid19-dataset
+	# mv data/raw/Covid19-dataset/train/Covid/*.* data/raw/covid19-images/COVID19/
+	# mv data/raw/Covid19-dataset/train/Normal/*.* data/raw/covid19-images/NORMAL/
+	# mv data/raw/Covid19-dataset/train/Viral\ Pneumonia/*.* data/raw/covid19-images/PNEUMONIA/
+	# mv data/raw/Covid19-dataset/test/Covid/*.* data/raw/covid19-images/COVID19/
+	# mv data/raw/Covid19-dataset/test/Normal/*.* data/raw/covid19-images/NORMAL/
+	# mv data/raw/Covid19-dataset/test/Viral\ Pneumonia/*.* data/raw/covid19-images/PNEUMONIA/
+	mv -f data/raw/covid19-images/PNEUMONIA/ data/raw/covid19-images/Pneumonia/
+	mv -f data/raw/covid19-images/NORMAL/ data/raw/covid19-images/Normal/
+	mv -f data/raw/covid19-images/COVID19/ data/raw/covid19-images/Covid19/
+	# rm -rf data/raw/Covid19-dataset
 
 
 ## Validate Dataset
@@ -118,6 +122,13 @@ endif
 ## Test python environment is setup correctly
 test_environment:
 	$(PYTHON_INTERPRETER) test_environment.py
+	mkdir -p data
+	mkdir -p data/raw
+	mkdir -p data/processed
+	mkdir -p data/external
+	mkdir -p data/interim
+	mkdir -p logs
+	mkdir -p logs/fit
 
 #################################################################################
 # PROJECT RULES                                                                 #
