@@ -27,7 +27,8 @@ var/
 /data/interim
 /data/models/
 /models/
-models/xray_class_weights.best.hdf5
+models/
+logs/fit/
 
 
 *.egg-info/

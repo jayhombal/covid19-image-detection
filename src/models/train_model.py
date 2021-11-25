@@ -150,7 +150,8 @@ def fit_model(model,
               num_epochs: int = 20, 
               batch_size: int = 32, 
               checkpoint_filepath:str = 'models/my_model.h5', 
-              logs_dir: str = 'logs/fit'):
+              logs_dir: str = 'logs/fit',
+              patience: int = 5):
     
     
     checkpoint = ModelCheckpoint(checkpoint_filepath, 
@@ -159,7 +160,7 @@ def fit_model(model,
                                  save_best_only=True, 
                                  mode='min')
 
-    early = EarlyStopping(monitor="val_loss", min_delta = 1e-4, patience = 3, mode = 'min', 
+    early = EarlyStopping(monitor="val_loss", min_delta = 1e-4, patience = patience, mode = 'min', 
                     restore_best_weights = True, verbose = 1)
 
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience = 2 ) #, verbose = 1, 
