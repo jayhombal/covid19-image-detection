@@ -17,13 +17,13 @@ def main(input_filepath, output_filepath):
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
     prepare_nih = PrepareNIHData(MIN_CASES_FLAG=False)
-    
     logger.info('PrepareNIH - reading validatedd dataset')
     prepare_nih.read_data(input_filepath)
     logger.info('PrepareNIH - Prepare data')
     prepare_nih.process_data()
     logger.info('PrepareNIH - saving validated data')
     prepare_nih.write_data(output_filepath)
+
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
