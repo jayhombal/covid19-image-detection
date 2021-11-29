@@ -6,7 +6,6 @@ from dotenv import find_dotenv, load_dotenv
 from validate_nih_dataset import ValidateNIHData
 
 
-
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))
 @click.argument('output_filepath', type=click.Path())
@@ -17,7 +16,6 @@ def main(input_filepath, output_filepath):
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
     validate_nih = ValidateNIHData()
-    
     logger.info('ValidateNIH - reading raw dataset')
     validate_nih.read_data(input_filepath)
     logger.info('ValidateNIH - validating data')
