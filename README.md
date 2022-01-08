@@ -77,19 +77,40 @@ Pre-requisites:
 
 4. create data folder with subdirectories raw,interim,processed,external the project folder
 
-How to Run the code:
+Project Code Orginzation:
+Cookiecutter is a command-line utility that creates projects from cookiecutters (project templates), e.g. Python package projects, LaTeX documents, etc.
 
+Installed and created the project template using Cookiecutter:
+Follow instructions from https://ericbassett.tech/cookiecutter-data-science-crash-course/
+
+Validating and pre-processing NIH X-ray metadata dataset
+Following instructions use make tool, run commands from from your terminal from your project folder
+
+Setup
+Setup python environment
+
+1. Validate Python is installed and create required directories  
+    Run: make test_environment  
 
 Data Extraction:(execute only once)
-Download and extract image data for the project
 
-    1. Download and unzip the NIH X-ray images in data/raw  
-        Run: make get_nih_images 
+2. Download and unzip the NIH X-ray images in data/raw    
+    Run: make get_nih_images   
 
-    2. Download the Covid19 X-ray images in data/raw 
-        Run: make get_covid19_images
+Data Validation:(execute only once)
 
-Data Validation:
-Data validation means checking the accuracy and quality of source data before training a new model version. It ensures that anomalies that are infrequent or manifested in incremental data are not silently ignored.
+3. Validate Dataset (rename columns and delete patient record with age greater than 100)   
+    Run: make validate_nih_images   
 
-    3. make 
+Data Prepartion:(execute only once)
+
+4. Prepare Dataset (add path attribute, split dataset into train and validation dataset)
+    Run: make prepare_nih_images
+
+This proudces the three output files in processed folder:
+
+1. prepared_data_entry_2017.csv (full dataset)
+2. prepared_train_data_entry_2017.csv (train_dataset)
+3. prepared_valid_data_entry_2017.csv (validation_dataset)
+
+Next, we use prepared_train_data_entry_2017.csv and prepared_valid_data_entry_2017.csv files to retrain CNN model architectures pre-trained using IMAGENET database
